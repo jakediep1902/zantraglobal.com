@@ -10,23 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout code từ repo
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Deploy code lên VPS qua SSH
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASS }}
+          port: ${{ secrets.VPS_PORT }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Tạo folder nếu chưa tồn tại và di chuyển vào đó
+            # Tạo folder nếu chưa tồn tại
             mkdir -p /var/www/zantraglobal.com
             cd /var/www/zantraglobal.com
 
-            # Kiểm tra git repo
+            # Clone hoặc pull repo qua SSH
             if [ ! -d ".git" ]; then
-              git clone https://x-access-token:${{ secrets.PAT }}@github.com/jakediep1902/zantraglobal.com.git .
+              git clone git@github.com:jakediep1902/zantraglobal.com.git .
             else
               git reset --hard
               git pull origin main
@@ -36,5 +39,5 @@ jobs:
             chown -R www-data:www-data /var/www/zantraglobal.com
             chmod -R 755 /var/www/zantraglobal.com
 
-            # Optional: reload Nginx nếu cần
-            # sudo systemctl reload nginx
+            # Reload Nginx nếu cần
+            sudo systemctl reload nginx || true
