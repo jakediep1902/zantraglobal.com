@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH to VPS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ 103.90.224.179 }}
+          username: ${{ root }}
+          password: ${{ forthought }}
+          script: |
+            cd /var/www/html
+            git reset --hard
+            git pull origin main
