@@ -13,23 +13,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to VPS via SSH
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.VPS_SSH_KEY }}" > private_key
+          chmod 600 private_key
+
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
+          key_path: ./private_key
           port: ${{ secrets.VPS_PORT }}
-          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/zantraglobal.com
-
             if [ ! -d ".git" ]; then
               git clone git@github.com:jakediep1902/zantraglobal.com.git .
             else
               git reset --hard
               git pull origin main
             fi
-
             chown -R www-data:www-data /var/www/zantraglobal.com
             chmod -R 755 /var/www/zantraglobal.com
             sudo systemctl reload nginx || true
