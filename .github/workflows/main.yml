@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main
+      - main   # Chạy khi push lên nhánh main
 
 jobs:
   deploy:
@@ -13,13 +13,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH to VPS
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ 103.90.224.179 }}
-          username: ${{ root }}
-          password: ${{ forthought }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASS }}
           script: |
-            cd /var/www/html
-            git reset --hard
-            git pull origin main
+            cd /var/www/zantraglobal.com || mkdir -p /var/www/zantraglobal.com && cd /var/www/zantraglobal.com
+
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/jakediep1902/zantraglobal.com.git . 
+            else
+              git pull origin main
+            fi
+
+            # Phân quyền (nếu cần)
+            chown -R www-data:www-data /var/www/zantraglobal.com
+            chmod -R 755 /var/www/zantraglobal.com
